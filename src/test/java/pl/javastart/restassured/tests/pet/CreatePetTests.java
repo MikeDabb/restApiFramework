@@ -1,10 +1,12 @@
 package pl.javastart.restassured.tests.pet;
 
+import org.apache.http.HttpStatus;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import pl.javastart.restassured.main.pojo.response.ApiResponse;
 import pl.javastart.restassured.main.pojo.pet.Pet;
+import pl.javastart.restassured.main.request.configuration.RequestConfigurationBuilder;
 import pl.javastart.restassured.main.test.data.pet.PetTestDataGenerator;
 import pl.javastart.restassured.tests.testbases.SuiteTestBase;
 
@@ -20,9 +22,9 @@ public class CreatePetTests extends SuiteTestBase {
 
         Pet pet = new PetTestDataGenerator().generatePet();
 
-        actualPet = given().body(pet).contentType("application/json")
+        actualPet = given().spec(RequestConfigurationBuilder.getDefaultRequestSpecification()).body(pet)
                 .when().post("pet")
-                .then().statusCode(200).extract().as(Pet.class);
+                .then().statusCode(HttpStatus.SC_OK).extract().as(Pet.class);
 
         Assertions.assertThat(actualPet)
                 .describedAs("Send Pet was different than received by API")
@@ -32,9 +34,9 @@ public class CreatePetTests extends SuiteTestBase {
 
     @AfterMethod
     public void cleanUpAfterTest(){
-        ApiResponse apiResponse = given().contentType("application/json")
+        ApiResponse apiResponse = given().spec(RequestConfigurationBuilder.getDefaultRequestSpecification())
                 .when().delete("pet/{petId}", actualPet.getId())
-                .then().statusCode(200).extract().as(ApiResponse.class);
+                .then().statusCode(HttpStatus.SC_OK).extract().as(ApiResponse.class);
 
         ApiResponse expectedApiResponse = new ApiResponse();
         expectedApiResponse.setCode(200);
