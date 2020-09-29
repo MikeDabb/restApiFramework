@@ -1,5 +1,7 @@
 package pl.javastart.restassured.tests.user;
 
+import org.assertj.core.api.Assertions;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import pl.javastart.restassured.main.pojo.response.ApiResponse;
 import pl.javastart.restassured.main.pojo.user.User;
@@ -7,23 +9,46 @@ import pl.javastart.restassured.main.test.data.UserTestDataGenerator;
 import pl.javastart.restassured.tests.testbases.SuiteTestBase;
 
 import static io.restassured.RestAssured.given;
-import static org.testng.Assert.assertEquals;
 
 public class CreateUserTests extends SuiteTestBase {
 
+    private User user;
+
     @Test
     public void givenUserWhenPostUserThenUserIsCreatedTest() {
-
         UserTestDataGenerator userTestDataGenerator = new UserTestDataGenerator();
-        User user = userTestDataGenerator.generateUser();
+        user = userTestDataGenerator.generateUser();
 
         ApiResponse apiResponse = given().contentType("application/json")
                 .body(user)
                 .when().post("user")
-                .then().extract().as(ApiResponse.class);
+                .then().statusCode(200).extract().as(ApiResponse.class);
 
-        assertEquals(apiResponse.getCode(),  Integer.valueOf(200), "Code");
-        assertEquals(apiResponse.getType(), "unknown", "Type");
-        assertEquals(apiResponse.getMessage(), "445", "Message");
+        ApiResponse expectedApiResponse = new ApiResponse();
+        expectedApiResponse.setCode(200);
+        expectedApiResponse.setType("unknown");
+        expectedApiResponse.setMessage(user.getId().toString());
+
+        Assertions.assertThat(apiResponse)
+                .describedAs("Created User was not created by API")
+                .usingRecursiveComparison().isEqualTo(expectedApiResponse);
     }
+
+    @AfterMethod
+    public void cleanUpAfterTest() {
+        ApiResponse apiResponse = given().contentType("application/json")
+                .when().delete("user/{username}", user.getUsername())
+                .then().statusCode(200).extract().as(ApiResponse.class);
+
+        ApiResponse expectedApiResponse = new ApiResponse();
+        expectedApiResponse.setCode(200);
+        expectedApiResponse.setType("unknown");
+        expectedApiResponse.setMessage(user.getUsername());
+
+        Assertions.assertThat(apiResponse)
+                .describedAs("User was not deleted")
+                .usingRecursiveComparison()
+                .isEqualTo(expectedApiResponse);
+    }
+
 }
