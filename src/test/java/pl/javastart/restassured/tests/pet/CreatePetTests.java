@@ -1,5 +1,8 @@
 package pl.javastart.restassured.tests.pet;
 
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Step;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -15,7 +18,9 @@ public class CreatePetTests extends SuiteTestBase {
 
     private Pet actualPet;
 
-    @Test
+    @Step
+    @Severity(SeverityLevel.CRITICAL)
+    @Test(description = "The goal of this test is to create pet and check if returned Pet object is the same", priority = 1)
     public void givenPetWhenPostPetThenPetIsCreatedTest() {
         Pet pet = new PetTestDataGenerator().generatePet();
         actualPet = new CreatePetEndpoint().setPet(pet).sendRequest().getResponseModel();
@@ -25,6 +30,7 @@ public class CreatePetTests extends SuiteTestBase {
                 .isEqualTo(pet);
     }
 
+    @Step
     @AfterMethod
     public void cleanUpAfterTest(){
         ApiResponse apiResponse = new DeletePetEndpoint().setPetId(actualPet.getId()).sendRequest().getResponseModel();

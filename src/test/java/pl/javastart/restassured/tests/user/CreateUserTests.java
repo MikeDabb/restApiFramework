@@ -1,5 +1,8 @@
 package pl.javastart.restassured.tests.user;
 
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Step;
 import org.apache.http.HttpStatus;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.AfterMethod;
@@ -7,6 +10,7 @@ import org.testng.annotations.Test;
 import pl.javastart.restassured.main.pojo.user.User;
 import pl.javastart.restassured.main.request.configuration.RequestConfigurationBuilder;
 import pl.javastart.restassured.main.rop.CreateUserEndpoint;
+import pl.javastart.restassured.main.rop.DeleteUserEndpoint;
 import pl.javastart.restassured.main.test.data.UserTestDataGenerator;
 import pl.javastart.restassured.tests.testbases.SuiteTestBase;
 
@@ -18,6 +22,8 @@ public class CreateUserTests extends SuiteTestBase {
 
     private User user;
 
+    @Step
+    @Severity(SeverityLevel.CRITICAL)
     @Test
     public void givenUserWhenPostUserThenUserIsCreatedTest() {
         UserTestDataGenerator userTestDataGenerator = new UserTestDataGenerator();
@@ -33,11 +39,10 @@ public class CreateUserTests extends SuiteTestBase {
         Assertions.assertThat(apiResponse).describedAs("Created User was not created by API").usingRecursiveComparison().isEqualTo(expectedApiResponse);
     }
 
+    @Step
     @AfterMethod
     public void cleanUpAfterTest() {
-        ApiResponse apiResponse = given().spec(RequestConfigurationBuilder.getDefaultRequestSpecification())
-                .when().delete("user/{username}", user.getUsername())
-                .then().statusCode(HttpStatus.SC_OK).extract().as(ApiResponse.class);
+        ApiResponse apiResponse = new DeleteUserEndpoint().setUsername(user.getUsername()).sendRequest().getResponseModel();
 
         ApiResponse expectedApiResponse = new ApiResponse();
         expectedApiResponse.setCode(HttpStatus.SC_OK);
